@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 
+import '../services/book_storage_service.dart';
+
 class BookSearchBar extends StatefulWidget {
   final Function(List<dynamic>) onSearchResults;
   final Function(bool) onLoadingChanged;
@@ -8,12 +10,12 @@ class BookSearchBar extends StatefulWidget {
   final EdgeInsets margin;
 
   const BookSearchBar({
-    super.key,
+    Key? key,
     required this.onSearchResults,
     required this.onLoadingChanged,
     this.hintText = 'Search books by title or author...',
     this.margin = const EdgeInsets.all(20),
-  });
+  }) : super(key: key);
 
   @override
   State<BookSearchBar> createState() => _BookSearchBarState();
@@ -157,27 +159,66 @@ class _BookSearchBarState extends State<BookSearchBar> {
   }
 }
 
-// Optional: A simple book result item widget you can also reuse
-class BookResultItem extends StatelessWidget {
+class BookResultItem extends StatefulWidget {
   final dynamic book;
   final VoidCallback? onTap;
+  final BookStorageService? storageService; // Add this parameter
 
   const BookResultItem({
-    super.key,
+    Key? key,
     required this.book,
     this.onTap,
-  });
+    this.storageService, // Add this parameter
+  }) : super(key: key);
+
+  @override
+  State<BookResultItem> createState() => _BookResultItemState();
+}
+
+// Optional: A simple book result item widget you can also reuse
+class _BookResultItemState extends State<BookResultItem> {
+  bool _isBookSaved = false;
+  bool _isChecking = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkIfBookIsSaved();
+  }
+
+  Future<void> _checkIfBookIsSaved() async {
+    if (widget.storageService != null && widget.book != null) {
+      final bookId = widget.book['id'] ?? '';
+      if (bookId.isNotEmpty) {
+        final isSaved = await widget.storageService!.isBookSaved(bookId);
+        if (mounted) {
+          setState(() {
+            _isBookSaved = isSaved;
+            _isChecking = false;
+          });
+        }
+      } else {
+        setState(() {
+          _isChecking = false;
+        });
+      }
+    } else {
+      setState(() {
+        _isChecking = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final volumeInfo = book['volumeInfo'] ?? {};
+    final volumeInfo = widget.book['volumeInfo'] ?? {};
     final title = volumeInfo['title'] ?? 'No title';
     final authors = volumeInfo['authors'] ?? [];
     final imageLinks = volumeInfo['imageLinks'];
     final thumbnail = imageLinks?['thumbnail'] ?? imageLinks?['smallThumbnail'];
 
     return GestureDetector(
-      onTap: onTap,
+      onTap: widget.onTap,
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         padding: const EdgeInsets.all(16),
@@ -247,6 +288,27 @@ class BookResultItem extends StatelessWidget {
                 ],
               ),
             ),
+            if (_isChecking)
+              const SizedBox(
+                width: 30,
+                height: 30,
+                child: Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
+                  ),
+                ),
+              )
+            else if (_isBookSaved)
+              Padding(
+                padding: const EdgeInsets.only(left: 8.0),
+                child: Image.asset(
+                  'assets/icons/done.png',
+                  width: 30,
+                  height: 30,
+                ),
+              ),
           ],
         ),
       ),
