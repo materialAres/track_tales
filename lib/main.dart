@@ -1,13 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/pages/list_page.dart';
 import 'package:flutter_application_1/services/book_storage_service.dart';
+import 'package:flutter_application_1/widgets/book_result_item.dart';
 import 'package:flutter_application_1/widgets/book_search_bar.dart';
 import 'package:flutter_application_1/widgets/bottom_navigation_icon.dart';
 import 'package:flutter_application_1/widgets/save_book_modal.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(const BookTrackerApp());
+  runApp(
+    // The Provider creates a single instance of your service.
+    Provider<BookStorageService>(
+      create: (_) => LocalBookStorageService(),
+      child: const BookTrackerApp(),
+    ),
+  );
 }
 
 // Main application widget
@@ -38,17 +46,23 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  late BookStorageService _storageService;
+
   static const Color widgetBackgroundColor = Color(0xFFF8EDDF);
   static const Color textColor = Color(0xFF7A7166);
   static const Color iconColor = Color(0xFFC3BBAF);
   static const Color iconTextColor = Color(0xFF6F655B);
 
-  final BookStorageService _storageService = LocalBookStorageService();
-
-  // Search state variables
   List<dynamic> _searchResults = [];
   bool _isSearching = false;
   bool _showSearchResults = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // GET the shared service instance from Provider here
+    _storageService = Provider.of<BookStorageService>(context, listen: false);
+  }
 
   void _handleSearchResults(List<dynamic> results) {
     setState(() {
@@ -113,6 +127,7 @@ class _HomePageState extends State<HomePage> {
         return BookResultItem(
           book: _searchResults[index],
           onTap: () => _onBookSelected(_searchResults[index]),
+          storageService: _storageService,
         );
       },
     );

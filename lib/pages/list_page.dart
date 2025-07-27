@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/services/book_storage_service.dart';
+import 'package:provider/provider.dart';
 
 class ListPage extends StatefulWidget {
   const ListPage({super.key});
@@ -9,13 +10,14 @@ class ListPage extends StatefulWidget {
 }
 
 class _ListPageState extends State<ListPage> {
-  final BookStorageService _storageService = LocalBookStorageService();
+  late BookStorageService _storageService;
   List<SavedBook> _savedBooks = [];
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    _storageService = Provider.of<BookStorageService>(context, listen: false);
     _loadSavedBooks();
   }
 
