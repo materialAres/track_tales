@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 
-import '../services/book_storage_service.dart';
-
 class BookSearchBar extends StatefulWidget {
   final Function(List<dynamic>) onSearchResults;
   final Function(bool) onLoadingChanged;

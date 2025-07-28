@@ -1,64 +1,8 @@
-// lib/services/book_storage_service.dart
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// Book model for easier data handling
-class SavedBook {
-  final String id;
-  final String title;
-  final List<String> authors;
-  final String? thumbnail;
-  final String? description;
-  final DateTime savedAt;
-
-  SavedBook({
-    required this.id,
-    required this.title,
-    required this.authors,
-    this.thumbnail,
-    this.description,
-    required this.savedAt,
-  });
-
-  // Convert to JSON for storage
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'title': title,
-      'authors': authors,
-      'thumbnail': thumbnail,
-      'description': description,
-      'savedAt': savedAt.toIso8601String(),
-    };
-  }
-
-  // Create from JSON
-  factory SavedBook.fromJson(Map<String, dynamic> json) {
-    return SavedBook(
-      id: json['id'],
-      title: json['title'],
-      authors: List<String>.from(json['authors']),
-      thumbnail: json['thumbnail'],
-      description: json['description'],
-      savedAt: DateTime.parse(json['savedAt']),
-    );
-  }
-
-  // Create from Google Books API response
-  factory SavedBook.fromGoogleBooksApi(dynamic bookData) {
-    final volumeInfo = bookData['volumeInfo'] ?? {};
-    final imageLinks = volumeInfo['imageLinks'];
-
-    return SavedBook(
-      id: bookData['id'] ?? '',
-      title: volumeInfo['title'] ?? 'No title',
-      authors: List<String>.from(volumeInfo['authors'] ?? []),
-      thumbnail: imageLinks?['thumbnail'] ?? imageLinks?['smallThumbnail'],
-      description: volumeInfo['description'],
-      savedAt: DateTime.now(),
-    );
-  }
-}
+import '../models/saved_book.dart';
 
 // Storage service interface - makes Firebase migration easier
 abstract class BookStorageService {
@@ -66,11 +10,14 @@ abstract class BookStorageService {
   Future<bool> saveBook(SavedBook book);
   Future<bool> removeBook(String bookId);
   Future<bool> isBookSaved(String bookId);
+  Future<String> getQuote();
+  Future<void> saveQuote(String quote);
 }
 
 // Local storage implementation using SharedPreferences
 class LocalBookStorageService implements BookStorageService {
   static const String _savedBooksKey = 'saved_books';
+  static const _quoteKey = 'user_favourite_quote';
 
   @override
   Future<List<SavedBook>> getSavedBooks() async {
@@ -136,6 +83,38 @@ class LocalBookStorageService implements BookStorageService {
       return savedBooks.any((book) => book.id == bookId);
     } catch (e) {
       print('Error checking if book is saved: $e');
+      return false;
+    }
+  }
+
+  @override
+  Future<String> getQuote() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final quote = prefs.getString(_quoteKey) ?? '';
+
+      return jsonDecode(quote);
+    } catch (e) {
+      debugPrint('Error getting saved quote: $e');
+      return '';
+    }
+  }
+
+  @override
+  Future<bool> saveQuote(String quote) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final storedQuote = await getQuote();
+
+      if (storedQuote == quote) {
+        return false;
+      }
+
+      final quoteJson = jsonEncode(quote);
+
+      return await prefs.setString(_quoteKey, quoteJson);
+    } catch (e) {
+      debugPrint('Error saving quote: $e');
       return false;
     }
   }

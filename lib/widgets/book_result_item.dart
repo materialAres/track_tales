@@ -49,18 +49,13 @@ class _BookResultItemState extends State<BookResultItem> {
           });
         }
       } catch (e) {
-        // Optionally, handle the error, e.g., show a snackbar.
         debugPrint('Error checking if book is saved: $e');
         if (mounted) {
           setState(() {
-            // Decide what the state should be on error.
-            // For example, you might want to set _isBookSaved to false.
             _isBookSaved = false;
           });
         }
       } finally {
-        // This block will always execute after the try/catch,
-        // even if the widget is unmounted in the middle of the await.
         if (mounted) {
           setState(() {
             _isChecking = false;

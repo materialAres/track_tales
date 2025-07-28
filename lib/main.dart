@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/pages/list_page.dart';
 import 'package:flutter_application_1/services/book_storage_service.dart';
@@ -48,6 +50,10 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late BookStorageService _storageService;
 
+  late final TextEditingController _quoteController;
+
+  Timer? _debounce;
+
   static const Color widgetBackgroundColor = Color(0xFFF8EDDF);
   static const Color textColor = Color(0xFF7A7166);
   static const Color iconColor = Color(0xFFC3BBAF);
@@ -62,6 +68,8 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     // GET the shared service instance from Provider here
     _storageService = Provider.of<BookStorageService>(context, listen: false);
+    _quoteController = TextEditingController();
+    _quoteController.addListener(_onQuoteChanged);
   }
 
   void _handleSearchResults(List<dynamic> results) {
@@ -89,6 +97,25 @@ class _HomePageState extends State<HomePage> {
         storageService: _storageService,
       ),
     );
+  }
+
+  void _onQuoteChanged() {
+    // If a timer is already active, cancel it
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      // Perform the actual save operation here
+      debugPrint('Saving quote: ${_quoteController.text}'); // For debugging
+      _storageService.saveQuote(_quoteController.text);
+    });
+  }
+
+  @override
+  void dispose() {
+    _quoteController.removeListener(_onQuoteChanged);
+    _quoteController.dispose();
+    _debounce?.cancel();
+    super.dispose();
   }
 
   Widget _buildSearchResults() {
@@ -179,23 +206,30 @@ class _HomePageState extends State<HomePage> {
 
         // Text field for the quote
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
           decoration: BoxDecoration(
             color: widgetBackgroundColor,
             borderRadius: BorderRadius.circular(20),
           ),
-          child: const TextField(
-            style: TextStyle(
+          child: TextField(
+            controller: _quoteController,
+            keyboardType: TextInputType.multiline, // Allow multiple lines of text
+            minLines: 1, // Start with the height of 1 line
+            maxLines: 4, // Expand up to a maximum of 3 lines, then scroll
+            maxLength: 110, // Character limit
+
+            style: const TextStyle(
               color: textColor,
               fontSize: 24,
             ),
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               hintText: 'Type here...',
               hintStyle: TextStyle(
                 color: iconColor,
                 fontSize: 24,
               ),
-              border: InputBorder.none,
+              border: InputBorder.none, // Removes the underline
+              counterText: "", // Hides the default "0/200" counter
             ),
           ),
         ),

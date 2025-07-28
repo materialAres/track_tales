@@ -1,5 +1,6 @@
 // lib/widgets/save_book_modal.dart
 import 'package:flutter/material.dart';
+import '../models/saved_book.dart';
 import '../services/book_storage_service.dart';
 
 class SaveBookModal extends StatelessWidget {

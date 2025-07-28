@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_1/services/book_storage_service.dart';
 import 'package:provider/provider.dart';
 
+import '../models/saved_book.dart';
+
 class ListPage extends StatefulWidget {
   const ListPage({super.key});
 
