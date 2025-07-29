@@ -49,9 +49,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late BookStorageService _storageService;
-
   late final TextEditingController _quoteController;
-
   Timer? _debounce;
 
   static const Color widgetBackgroundColor = Color(0xFFF8EDDF);
@@ -70,6 +68,12 @@ class _HomePageState extends State<HomePage> {
     _storageService = Provider.of<BookStorageService>(context, listen: false);
     _quoteController = TextEditingController();
     _quoteController.addListener(_onQuoteChanged);
+
+    // By calling _loadSavedQuote here, we ensure that the widget has been
+    // fully initialized and built at least once before we update the controller.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadSavedQuote();
+    });
   }
 
   void _handleSearchResults(List<dynamic> results) {
@@ -97,6 +101,17 @@ class _HomePageState extends State<HomePage> {
         storageService: _storageService,
       ),
     );
+  }
+
+  Future<void> _loadSavedQuote() async {
+    final savedQuote = await _storageService.getQuote();
+    debugPrint('Stored quote: $savedQuote');
+
+    // Good practice: check if the widget is still in the widget tree
+    // before updating its state after an async operation.
+    if (mounted && savedQuote.isNotEmpty) {
+      _quoteController.text = savedQuote;
+    }
   }
 
   void _onQuoteChanged() {

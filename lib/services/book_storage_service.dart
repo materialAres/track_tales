@@ -93,7 +93,7 @@ class LocalBookStorageService implements BookStorageService {
       final prefs = await SharedPreferences.getInstance();
       final quote = prefs.getString(_quoteKey) ?? '';
 
-      return jsonDecode(quote);
+      return quote;
     } catch (e) {
       debugPrint('Error getting saved quote: $e');
       return '';
@@ -110,9 +110,9 @@ class LocalBookStorageService implements BookStorageService {
         return false;
       }
 
-      final quoteJson = jsonEncode(quote);
+      final quoteToSave = await prefs.setString(_quoteKey, quote);
 
-      return await prefs.setString(_quoteKey, quoteJson);
+      return quoteToSave;
     } catch (e) {
       debugPrint('Error saving quote: $e');
       return false;
