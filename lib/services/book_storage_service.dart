@@ -10,6 +10,8 @@ abstract class BookStorageService {
   Future<bool> saveBook(SavedBook book);
   Future<bool> removeBook(String bookId);
   Future<bool> isBookSaved(String bookId);
+  Future<void> saveFavoriteBook(SavedBook book);
+  Future<SavedBook?> getFavoriteBook();
   Future<String> getQuote();
   Future<void> saveQuote(String quote);
 }
@@ -18,6 +20,7 @@ abstract class BookStorageService {
 class LocalBookStorageService implements BookStorageService {
   static const String _savedBooksKey = 'saved_books';
   static const _quoteKey = 'user_favourite_quote';
+  static const _favoriteBookIdKey = 'favorite_book_id';
 
   @override
   Future<List<SavedBook>> getSavedBooks() async {
@@ -73,6 +76,40 @@ class LocalBookStorageService implements BookStorageService {
     } catch (e) {
       print('Error removing book: $e');
       return false;
+    }
+  }
+
+  @override
+  Future<void> saveFavoriteBook(SavedBook book) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_favoriteBookIdKey, book.id);
+    } catch (e) {
+      debugPrint('Error saving favorite book: $e');
+    }
+  }
+
+  @override
+  Future<SavedBook?> getFavoriteBook() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final favoriteBookId = prefs.getString(_favoriteBookIdKey);
+
+      if (favoriteBookId == null) {
+        return null; // No favorite book saved
+      }
+
+      // Find the book with the matching ID from all saved books
+      final allBooks = await getSavedBooks();
+      try {
+        return allBooks.firstWhere((book) => book.id == favoriteBookId);
+      } catch (e) {
+        // The favorite book ID exists but the book is not in the saved list anymore
+        return null;
+      }
+    } catch (e) {
+      debugPrint('Error getting favorite book: $e');
+      return null;
     }
   }
 

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../models/saved_book.dart';
 import '../services/book_storage_service.dart';
 
+
 class BookResultItem extends StatefulWidget {
-  final dynamic book;
+  final SavedBook book;
   final VoidCallback? onTap;
   final BookStorageService? storageService;
 
@@ -18,7 +20,6 @@ class BookResultItem extends StatefulWidget {
   State<BookResultItem> createState() => _BookResultItemState();
 }
 
-// Optional: A simple book result item widget you can also reuse
 class _BookResultItemState extends State<BookResultItem> {
   bool _isBookSaved = false;
   bool _isChecking = true;
@@ -30,54 +31,33 @@ class _BookResultItemState extends State<BookResultItem> {
   }
 
   Future<void> _checkIfBookIsSaved() async {
-    if (widget.book == null) {
-      if (mounted) {
-        setState(() {
-          _isChecking = false;
-        });
-      }
+    final bookId = widget.book.id;
+
+    if (widget.storageService == null) {
+      if (mounted) setState(() => _isChecking = false);
       return;
     }
 
-    final bookId = widget.book['id'] ?? '';
-    if (bookId.isNotEmpty) {
-      try {
-        final isSaved = await widget.storageService!.isBookSaved(bookId);
-        if (mounted) {
-          setState(() {
-            _isBookSaved = isSaved;
-          });
-        }
-      } catch (e) {
-        debugPrint('Error checking if book is saved: $e');
-        if (mounted) {
-          setState(() {
-            _isBookSaved = false;
-          });
-        }
-      } finally {
-        if (mounted) {
-          setState(() {
-            _isChecking = false;
-          });
-        }
-      }
-    } else {
+    try {
+      final isSaved = await widget.storageService!.isBookSaved(bookId);
       if (mounted) {
         setState(() {
-          _isChecking = false;
+          _isBookSaved = isSaved;
         });
       }
+    } catch (e) {
+      debugPrint('Error checking if book is saved: $e');
+      if (mounted) setState(() => _isBookSaved = false);
+    } finally {
+      if (mounted) setState(() => _isChecking = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final volumeInfo = widget.book['volumeInfo'] ?? {};
-    final title = volumeInfo['title'] ?? 'No title';
-    final authors = volumeInfo['authors'] ?? [];
-    final imageLinks = volumeInfo['imageLinks'];
-    final thumbnail = imageLinks?['thumbnail'] ?? imageLinks?['smallThumbnail'];
+    final title = widget.book.title;
+    final authors = widget.book.authors;
+    final thumbnail = widget.book.thumbnail;
 
     return GestureDetector(
       onTap: widget.onTap,
@@ -139,10 +119,7 @@ class _BookResultItemState extends State<BookResultItem> {
                     const SizedBox(height: 4),
                     Text(
                       'by ${authors.join(', ')}',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
