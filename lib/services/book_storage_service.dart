@@ -32,7 +32,7 @@ class LocalBookStorageService implements BookStorageService {
           .map((bookString) => SavedBook.fromJson(jsonDecode(bookString)))
           .toList();
     } catch (e) {
-      print('Error getting saved books: $e');
+      debugPrint('Error getting saved books: $e');
       return [];
     }
   }
@@ -42,7 +42,7 @@ class LocalBookStorageService implements BookStorageService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final savedBooks = await getSavedBooks();
-      print(savedBooks);
+      debugPrint('$savedBooks');
 
       // Check if book is already saved
       if (savedBooks.any((savedBook) => savedBook.id == book.id)) {
@@ -56,7 +56,7 @@ class LocalBookStorageService implements BookStorageService {
 
       return await prefs.setStringList(_savedBooksKey, booksJson);
     } catch (e) {
-      print('Error saving book: $e');
+      debugPrint('Error saving book: $e');
       return false;
     }
   }
@@ -74,7 +74,7 @@ class LocalBookStorageService implements BookStorageService {
 
       return await prefs.setStringList(_savedBooksKey, booksJson);
     } catch (e) {
-      print('Error removing book: $e');
+      debugPrint('Error removing book: $e');
       return false;
     }
   }
@@ -119,7 +119,7 @@ class LocalBookStorageService implements BookStorageService {
       final savedBooks = await getSavedBooks();
       return savedBooks.any((book) => book.id == bookId);
     } catch (e) {
-      print('Error checking if book is saved: $e');
+      debugPrint('Error checking if book is saved: $e');
       return false;
     }
   }
