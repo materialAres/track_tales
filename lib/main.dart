@@ -4,13 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_1/models/saved_book.dart';
 import 'package:flutter_application_1/pages/list_page.dart';
 import 'package:flutter_application_1/services/book_storage_service.dart';
-import 'package:flutter_application_1/widgets/adaptive_image_container.dart';
-import 'package:flutter_application_1/widgets/book_result_item.dart';
 import 'package:flutter_application_1/widgets/book_search_bar.dart';
 import 'package:flutter_application_1/widgets/bottom_navigation_icon.dart';
+import 'package:flutter_application_1/widgets/main_content.dart';
 import 'package:flutter_application_1/widgets/save_book_modal.dart';
+import 'package:flutter_application_1/widgets/search_results.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+
+import 'modals/book_selection_modal.dart';
 
 void main() {
   runApp(
@@ -97,8 +99,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _onBookSelected(dynamic book) async {
-    // Handle book selection - you can navigate to book details or add to list
-    final shouldSave = await showDialog<bool>(
+    await showDialog<bool>(
       context: context,
       builder: (context) => SaveBookModal(
         book: book,
@@ -159,230 +160,6 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
-  Widget _buildSearchResults() {
-    if (_isSearching) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(20),
-          child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(textColor),
-          ),
-        ),
-      );
-    }
-
-    if (_searchResults.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.all(20),
-        child: Center(
-          child: Text(
-            'No books found. Try a different search term.',
-            style: TextStyle(
-              color: iconColor,
-              fontSize: 18,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ),
-      );
-    }
-
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: _searchResults.length,
-      itemBuilder: (context, index) {
-        final rawBookData = _searchResults[index];
-        final bookToDisplay = SavedBook.fromGoogleBooksApi(rawBookData);
-
-        return BookResultItem(
-          book: bookToDisplay,
-          onTap: () => _onBookSelected(rawBookData),
-          storageService: _storageService,
-        );
-      },
-    );
-  }
-
-  void _showBookSelectionModal() {
-    showModalBottomSheet(
-      context: context,
-      // Allow the modal to take up more screen space if needed
-      isScrollControlled: true,
-      // Give it a nice shape
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        // Constrain the height to avoid covering the whole screen
-        return DraggableScrollableSheet(
-          expand: false,
-          initialChildSize: 0.6, // Start at 60% of the screen
-          minChildSize: 0.3,     // Allow shrinking to 30%
-          maxChildSize: 0.9,     // Allow expanding to 90%
-          builder: (context, scrollController) {
-            // We pass the scrollController to the list view
-            return _buildBookSelectionList(scrollController);
-          },
-        );
-      },
-    );
-  }
-
-  /// Builds the list of saved books inside the modal, reusing your search logic.
-  Widget _buildBookSelectionList(ScrollController scrollController) {
-    return FutureBuilder<List<SavedBook>>(
-      future: _storageService.getSavedBooks(),
-      builder: (context, snapshot) {
-        // 1. Loading state (like _isSearching)
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.all(20),
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white), // Or your textColor
-              ),
-            ),
-          );
-        }
-
-        // 2. Error or Empty state (like _searchResults.isEmpty)
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Padding(
-            padding: EdgeInsets.all(20),
-            child: Center(
-              child: Text(
-                'You have no saved books to choose from.',
-                style: TextStyle(
-                  color: Colors.grey, // Or your iconColor
-                  fontSize: 18,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          );
-        }
-
-        // 3. Success state: Build the list
-        final savedBooks = snapshot.data!;
-        return ListView.builder(
-          controller: scrollController, // Use the controller from DraggableScrollableSheet
-          itemCount: savedBooks.length,
-          itemBuilder: (context, index) {
-            final book = savedBooks[index];
-            return BookResultItem(
-              book: book,
-              // IMPORTANT: The onTap now calls our new selection handler
-              onTap: () => _onFavoriteBookSelected(book),
-              storageService: _storageService,
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildMainContent() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        const SizedBox(height: 20),
-        const Text(
-          'My best pick',
-          style: TextStyle(
-            fontSize: 42,
-            fontWeight: FontWeight.bold,
-            color: textColor,
-          ),
-        ),
-        const SizedBox(height: 20),
-
-        // Image container
-        GestureDetector(
-          onTap: _showBookSelectionModal,
-          child: SizedBox(
-            width: 150,
-            // We check if we have a favorite book with a thumbnail
-            child: _favoriteBook?.thumbnail != null
-            // --- IF YES: Use our new adaptive widget ---
-                ? AdaptiveImageContainer(
-              imageUrl: _favoriteBook!.thumbnail!,
-              width: 150,
-            )
-            // --- IF NO: Use the original placeholder logic ---
-                : AspectRatio(
-              aspectRatio: 2 / 3, // Default shape for placeholder
-              child: Container(
-                decoration: BoxDecoration(
-                  color: widgetBackgroundColor,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Center(
-                  child: _favoriteBook == null
-                  // If no book is selected at all, show "add"
-                      ? Image.asset(
-                    'assets/icons/add.png',
-                    width: 60,
-                    height: 60,
-                  )
-                  // If book is selected but has no image, show placeholder icon
-                      : const Icon(
-                    Icons.book_outlined,
-                    color: iconColor,
-                    size: 80,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 50),
-
-        // "My number one quote" Title
-        const Text(
-          'My favourite quote',
-          style: TextStyle(
-            fontSize: 42,
-            fontWeight: FontWeight.bold,
-            color: textColor,
-          ),
-        ),
-        const SizedBox(height: 20),
-
-        // Text field for the quote
-        Container(
-          padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
-          decoration: BoxDecoration(
-            color: widgetBackgroundColor,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: TextField(
-            controller: _quoteController,
-            keyboardType: TextInputType.multiline, // Allow multiple lines of text
-            minLines: 1, // Start with the height of 1 line
-            maxLines: 4, // Expand up to a maximum of 3 lines, then scroll
-            maxLength: 110, // Character limit
-
-            style: const TextStyle(
-              color: textColor,
-              fontSize: 24,
-            ),
-            decoration: const InputDecoration(
-              hintText: 'Type here...',
-              hintStyle: TextStyle(
-                color: iconColor,
-                fontSize: 24,
-              ),
-              border: InputBorder.none, // Removes the underline
-              counterText: "", // Hides the default "0/200" counter
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -403,13 +180,19 @@ class _HomePageState extends State<HomePage> {
             margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           ),
 
-          // Main content area
           Expanded(
             child: _showSearchResults
                 ? SingleChildScrollView(
               child: Column(
                 children: [
-                  _buildSearchResults(),
+                  SearchResults(
+                    isSearching: _isSearching,
+                    searchResults: _searchResults,
+                    onBookSelected: _onBookSelected,
+                    storageService: _storageService,
+                    iconColor: iconColor,
+                    textColor: textColor,
+                  ),
                   const SizedBox(height: 20),
                   // Add a button to go back to main content
                   if (!_isSearching)
@@ -439,7 +222,20 @@ class _HomePageState extends State<HomePage> {
                 padding: const EdgeInsets.symmetric(horizontal: 40.0),
                 child: Column(
                   children: [
-                    _buildMainContent(),
+                    MainContent(
+                      favoriteBook: _favoriteBook,
+                      quoteController: _quoteController,
+                      onBookSelectionTap: () => BookSelectionModal.show(
+                        context: context,
+                        onBookSelected: _onFavoriteBookSelected,
+                        storageService: _storageService,
+                        textColor: textColor,
+                        iconColor: iconColor,
+                      ),
+                      textColor: textColor,
+                      iconColor: iconColor,
+                      widgetBackgroundColor: widgetBackgroundColor,
+                    ),
                     const SizedBox(height: 40),
                   ],
                 ),
