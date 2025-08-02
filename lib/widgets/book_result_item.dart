@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/saved_book.dart';
 import '../services/book_storage_service.dart';
+import '../themes/custom_text_theme.dart';
 
 
 class BookResultItem extends StatefulWidget {
@@ -58,6 +59,7 @@ class _BookResultItemState extends State<BookResultItem> {
     final title = widget.book.title;
     final authors = widget.book.authors;
     final thumbnail = widget.book.thumbnail;
+    final customTheme = Theme.of(context).extension<CustomTextTheme>()!;
 
     return GestureDetector(
       onTap: widget.onTap,
@@ -65,7 +67,7 @@ class _BookResultItemState extends State<BookResultItem> {
         margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFFF5F5F0),
+          color: const Color(0xFFf2dbb6),
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
@@ -107,11 +109,12 @@ class _BookResultItemState extends State<BookResultItem> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: customTheme.boldText.copyWith(color: Color(0xFF2D3436)),
+                    /*const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: Color(0xFF2D3436),
-                    ),
+                    ),*/
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -119,7 +122,11 @@ class _BookResultItemState extends State<BookResultItem> {
                     const SizedBox(height: 4),
                     Text(
                       'by ${authors.join(', ')}',
-                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                      style: customTheme.bodyText.copyWith(
+                          color: Colors.grey[600],
+                          fontSize: 16
+                      ),
+                      //style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),

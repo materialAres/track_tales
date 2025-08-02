@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 
+import '../themes/custom_text_theme.dart';
+
 class BookSearchBar extends StatefulWidget {
   final Function(List<dynamic>) onSearchResults;
   final Function(bool) onLoadingChanged;
@@ -89,10 +91,12 @@ class _BookSearchBarState extends State<BookSearchBar> {
 
   @override
   Widget build(BuildContext context) {
+    final customTheme = Theme.of(context).extension<CustomTextTheme>()!;
+
     return Container(
       margin: widget.margin,
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F0),
+        color: const Color(0xFFf0f3f5),
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -104,9 +108,9 @@ class _BookSearchBarState extends State<BookSearchBar> {
       ),
       child: TextField(
         controller: _searchController,
-        style: const TextStyle(
-          fontSize: 16,
-          color: Color(0xFF2D3436),
+        style: customTheme.bodyText.copyWith(
+          color: Colors.grey[600],
+              fontSize: 16
         ),
         decoration: InputDecoration(
           hintText: widget.hintText,

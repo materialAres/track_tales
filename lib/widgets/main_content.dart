@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../models/saved_book.dart';
+import '../themes/custom_text_theme.dart';
 import 'adaptive_image_container.dart';
 
 class MainContent extends StatelessWidget {
@@ -23,6 +25,8 @@ class MainContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final customTheme = Theme.of(context).extension<CustomTextTheme>()!;
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -79,7 +83,7 @@ class MainContent extends StatelessWidget {
         ),
         const SizedBox(height: 50),
 
-        // "My number one quote" Title
+        // "My favourite quote" Title
         Text(
           'My favourite quote',
           style: TextStyle(
@@ -104,10 +108,7 @@ class MainContent extends StatelessWidget {
             maxLines: 4, // Expand up to a maximum of 3 lines, then scroll
             maxLength: 110, // Character limit
 
-            style: TextStyle(
-              color: textColor,
-              fontSize: 24,
-            ),
+            style: customTheme.bodyText.copyWith(color: textColor),
             decoration: InputDecoration(
               hintText: 'Type here...',
               hintStyle: TextStyle(

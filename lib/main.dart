@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_1/models/saved_book.dart';
 import 'package:flutter_application_1/pages/list_page.dart';
 import 'package:flutter_application_1/services/book_storage_service.dart';
+import 'package:flutter_application_1/themes/custom_text_theme.dart';
 import 'package:flutter_application_1/widgets/book_search_bar.dart';
 import 'package:flutter_application_1/widgets/bottom_navigation_icon.dart';
+import 'package:flutter_application_1/widgets/isbn_scanner_screen.dart';
 import 'package:flutter_application_1/widgets/main_content.dart';
 import 'package:flutter_application_1/widgets/save_book_modal.dart';
 import 'package:flutter_application_1/widgets/search_results.dart';
@@ -34,9 +36,23 @@ class BookTrackerApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Track Tales',
       theme: ThemeData(
+        // Set Caveat as the default font family
         textTheme: GoogleFonts.caveatTextTheme(
           Theme.of(context).textTheme,
         ),
+        // You can also define custom text styles here
+        extensions: <ThemeExtension<dynamic>>[
+          CustomTextTheme(
+            boldText: GoogleFonts.comicNeue(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+            bodyText: GoogleFonts.comicNeue(
+              fontSize: 20,
+              fontWeight: FontWeight.normal,
+            ),
+          ),
+        ],
       ),
       home: const HomePage(),
     );
@@ -57,7 +73,7 @@ class _HomePageState extends State<HomePage> {
   Timer? _debounce;
   SavedBook? _favoriteBook;
 
-  static const Color widgetBackgroundColor = Color(0xFFF8EDDF);
+  static const Color widgetBackgroundColor = Color(0xFFf2dbb6);
   static const Color textColor = Color(0xFF7A7166);
   static const Color iconColor = Color(0xFFC3BBAF);
   static const Color iconTextColor = Color(0xFF6F655B);
@@ -163,13 +179,13 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFBF5E9),
+      backgroundColor: const Color(0xFFf5ead3),
       body: Column(
         children: [
           // Safe area for status bar
           Container(
             height: MediaQuery.of(context).padding.top,
-            color: const Color(0xFFFBF5E9),
+            color: const Color(0xFFf5ead3),
           ),
 
           // Search bar at the top
@@ -270,9 +286,45 @@ class _HomePageState extends State<HomePage> {
                   label: 'Scan ISBN',
                   iconColor: iconTextColor,
                   isAddButton: true,
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Add Book tapped')),
+                  onTap: () async {
+                    // Navigate to ISBN scanner
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => ISBNScannerScreen(
+                          onBookFound: (bookData) async {
+                            try {
+                              // Convert Google Books API data to SavedBook
+                              final savedBook = SavedBook.fromGoogleBooksApi(bookData);
+
+                              // Save the book
+                              final success = await _storageService.saveBook(savedBook);
+
+                              if (success) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Book "${savedBook.title}" added successfully!'),
+                                    backgroundColor: Colors.green,
+                                  ),
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Book is already in your library'),
+                                    backgroundColor: Colors.orange,
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Error adding book: $e'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          },
+                        ),
+                      ),
                     );
                   },
                 ),

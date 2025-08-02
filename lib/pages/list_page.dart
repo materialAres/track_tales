@@ -3,6 +3,7 @@ import 'package:flutter_application_1/services/book_storage_service.dart';
 import 'package:provider/provider.dart';
 
 import '../models/saved_book.dart';
+import '../themes/custom_text_theme.dart';
 
 class ListPage extends StatefulWidget {
   const ListPage({super.key});
@@ -126,12 +127,12 @@ class _ListPageState extends State<ListPage> {
     }
   }
 
-  Widget _buildBookItem(SavedBook book) {
+  Widget _buildBookItem(SavedBook book, CustomTextTheme customTheme) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8EDDF),
+        color: const Color(0xFFf2dbb6),
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -173,10 +174,9 @@ class _ListPageState extends State<ListPage> {
               children: [
                 Text(
                   book.title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF2D3436),
+                  style: customTheme.boldText.copyWith(
+                      color: Colors.grey[600],
+                      fontSize: 20
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -185,9 +185,9 @@ class _ListPageState extends State<ListPage> {
                   const SizedBox(height: 4),
                   Text(
                     'by ${book.authors.join(', ')}',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
+                    style: customTheme.boldText.copyWith(
+                        color: Colors.grey[600],
+                        fontSize: 16
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -196,9 +196,9 @@ class _ListPageState extends State<ListPage> {
                 const SizedBox(height: 8),
                 Text(
                   'Saved on ${_formatDate(book.savedAt)}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[500],
+                  style: customTheme.bodyText.copyWith(
+                      color: Colors.grey[600],
+                      fontSize: 14
                   ),
                 ),
               ],
@@ -225,6 +225,8 @@ class _ListPageState extends State<ListPage> {
 
   @override
   Widget build(BuildContext context) {
+    final customTheme = Theme.of(context).extension<CustomTextTheme>()!;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Books List'),
@@ -285,10 +287,9 @@ class _ListPageState extends State<ListPage> {
               children: [
                 Text(
                   '${_savedBooks.length} book${_savedBooks.length != 1 ? 's' : ''} saved',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    color: Color(0xFF7A7166),
-                    fontWeight: FontWeight.w500,
+                  style: customTheme.bodyText.copyWith(
+                      color: Colors.grey[600],
+                      fontSize: 18
                   ),
                 ),
               ],
@@ -299,7 +300,7 @@ class _ListPageState extends State<ListPage> {
             child: ListView.builder(
               itemCount: _savedBooks.length,
               itemBuilder: (context, index) {
-                return _buildBookItem(_savedBooks[index]);
+                return _buildBookItem(_savedBooks[index], customTheme);
               },
             ),
           ),
