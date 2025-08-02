@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../models/saved_book.dart';
 import '../themes/custom_text_theme.dart';
@@ -47,34 +46,50 @@ class MainContent extends StatelessWidget {
           onTap: onBookSelectionTap,
           child: SizedBox(
             width: 150,
-            // We check if we have a favorite book with a thumbnail
-            child: favoriteBook?.thumbnail != null
-            // --- IF YES: Use our new adaptive widget ---
-                ? AdaptiveImageContainer(
-              imageUrl: favoriteBook!.thumbnail!,
-              width: 150,
-            )
-            // --- IF NO: Use the original placeholder logic ---
-                : AspectRatio(
-              aspectRatio: 2 / 3, // Default shape for placeholder
-              child: Container(
-                decoration: BoxDecoration(
-                  color: widgetBackgroundColor,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Center(
-                  child: favoriteBook == null
-                  // If no book is selected at all, show "add"
-                      ? Image.asset(
-                    'assets/icons/add.png',
-                    width: 60,
-                    height: 60,
-                  )
-                  // If book is selected but has no image, show placeholder icon
-                      : Icon(
-                    Icons.book_outlined,
-                    color: iconColor,
-                    size: 80,
+            // NEW: Wrap the content in a Container that will render the shadow.
+            child: Container(
+              decoration: BoxDecoration(
+                // The borderRadius here ensures the shadow follows the rounded shape.
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.15),
+                    blurRadius: 10,
+                    spreadRadius: 0.1,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: favoriteBook?.thumbnail != null
+              // --- IF YES: Use our new adaptive widget ---
+              // AdaptiveImageContainer should already handle clipping its own image to a rounded shape.
+                  ? AdaptiveImageContainer(
+                imageUrl: favoriteBook!.thumbnail!,
+                width: 150,
+              )
+              // --- IF NO: Use the original placeholder logic ---
+              // This widget needs to be clipped to the same rounded shape as the shadow.
+                  : AspectRatio(
+                aspectRatio: 2 / 3,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: widgetBackgroundColor,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Center(
+                    child: favoriteBook == null
+                    // If no book is selected at all, show "add"
+                        ? Image.asset(
+                      'assets/icons/add.png',
+                      width: 60,
+                      height: 60,
+                    )
+                    // If a book is selected but has no image, show placeholder icon
+                        : Icon(
+                      Icons.book_outlined,
+                      color: iconColor,
+                      size: 80,
+                    ),
                   ),
                 ),
               ),
@@ -100,6 +115,14 @@ class MainContent extends StatelessWidget {
           decoration: BoxDecoration(
             color: widgetBackgroundColor,
             borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.15),
+                blurRadius: 5,
+                spreadRadius: 0.1,
+                offset: const Offset(0, 5),
+              ),
+            ],
           ),
           child: TextField(
             controller: quoteController,

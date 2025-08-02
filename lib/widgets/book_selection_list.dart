@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/saved_book.dart';
 import '../services/book_storage_service.dart';
+import '../themes/custom_text_theme.dart';
 import 'book_result_item.dart';
 
 class BookSelectionList extends StatelessWidget {
@@ -22,6 +23,8 @@ class BookSelectionList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final customTheme = Theme.of(context).extension<CustomTextTheme>()!;
+
     return FutureBuilder<List<SavedBook>>(
       future: storageService.getSavedBooks(),
       builder: (context, snapshot) {
@@ -44,10 +47,7 @@ class BookSelectionList extends StatelessWidget {
             child: Center(
               child: Text(
                 'You have no saved books to choose from.',
-                style: TextStyle(
-                  color: iconColor,
-                  fontSize: 18,
-                ),
+                style: customTheme.bodyText.copyWith(color: textColor),
                 textAlign: TextAlign.center,
               ),
             ),
