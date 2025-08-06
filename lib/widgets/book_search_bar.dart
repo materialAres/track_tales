@@ -23,12 +23,26 @@ class BookSearchBar extends StatefulWidget {
 
 class _BookSearchBarState extends State<BookSearchBar> {
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
   final Dio _dio = Dio();
   bool _isLoading = false;
 
   @override
+  void initState() {
+    super.initState();
+    _focusNode.addListener(() {
+      setState(() {});
+    });
+
+    _searchController.addListener(() {
+      setState(() {});
+    });
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -86,11 +100,14 @@ class _BookSearchBarState extends State<BookSearchBar> {
   void _clearSearch() {
     _searchController.clear();
     widget.onSearchResults([]);
+    _focusNode.unfocus();
     FocusScope.of(context).unfocus();
   }
 
   @override
   Widget build(BuildContext context) {
+    final bool showClearButton = _focusNode.hasFocus && _searchController.text.isNotEmpty;
+    final bool showBackButton = _focusNode.hasFocus;
     final customTheme = Theme.of(context).extension<CustomTextTheme>()!;
 
     return Container(
@@ -108,6 +125,7 @@ class _BookSearchBarState extends State<BookSearchBar> {
       ),
       child: TextField(
         controller: _searchController,
+        focusNode: _focusNode,
         style: customTheme.bodyText.copyWith(
           color: Colors.grey[600],
               fontSize: 16
@@ -135,7 +153,7 @@ class _BookSearchBarState extends State<BookSearchBar> {
             color: Colors.grey,
             size: 24,
           ),
-          suffixIcon: _searchController.text.isNotEmpty
+          suffixIcon: showClearButton
               ? IconButton(
             icon: const Icon(
               Icons.clear,
@@ -143,17 +161,20 @@ class _BookSearchBarState extends State<BookSearchBar> {
               size: 20,
             ),
             onPressed: _clearSearch,
-          )
-              : null,
+          ) : showBackButton ? IconButton(
+            icon: const Icon(
+              Icons.arrow_back,
+              color: Colors.grey,
+              size: 20,
+            ),
+            onPressed: _clearSearch,
+          ) : null,
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
             vertical: 16,
           ),
         ),
-        onChanged: (value) {
-          setState(() {}); // Rebuild to show/hide clear button
-        },
         onSubmitted: _searchBooks,
         textInputAction: TextInputAction.search,
       ),
