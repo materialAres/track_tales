@@ -78,6 +78,8 @@ class _HomePageState extends State<HomePage> {
   static const Color iconColor = Color(0xFFC3BBAF);
   static const Color iconTextColor = Color(0xFF6F655B);
 
+  final TextEditingController _searchController = TextEditingController();
+
   List<dynamic> _searchResults = [];
   bool _isSearching = false;
   bool _showSearchResults = false;
@@ -109,7 +111,7 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _isSearching = isLoading;
       if (isLoading) {
-        _showSearchResults = true; // Show search area when loading
+        _showSearchResults = true;
       }
     });
   }
@@ -192,6 +194,7 @@ class _HomePageState extends State<HomePage> {
           BookSearchBar(
             onSearchResults: _handleSearchResults,
             onLoadingChanged: _handleLoadingChanged,
+            searchController: _searchController,
             hintText: 'Search books by title or author...',
             margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           ),
@@ -274,11 +277,19 @@ class _HomePageState extends State<HomePage> {
                   imagePath: 'assets/icons/list.png',
                   label: 'List',
                   iconColor: iconTextColor,
-                  onTap: () {
-                    Navigator.push(
+                  onTap: () async {
+                    await Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const ListPage()),
                     );
+
+                    if (mounted) {
+                      setState(() {
+                        _showSearchResults = false;
+                        _searchResults = [];
+                        _searchController.clear();
+                      });
+                    }
                   },
                 ),
                 BottomNavigationIcon(
@@ -326,6 +337,14 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                     );
+
+                    if (mounted) {
+                      setState(() {
+                        _showSearchResults = false;
+                        _searchResults = [];
+                        _searchController.clear();
+                      });
+                    }
                   },
                 ),
               ],

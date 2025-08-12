@@ -6,6 +6,7 @@ import '../themes/custom_text_theme.dart';
 class BookSearchBar extends StatefulWidget {
   final Function(List<dynamic>) onSearchResults;
   final Function(bool) onLoadingChanged;
+  final TextEditingController searchController;
   final String hintText;
   final EdgeInsets margin;
 
@@ -13,6 +14,7 @@ class BookSearchBar extends StatefulWidget {
     Key? key,
     required this.onSearchResults,
     required this.onLoadingChanged,
+    required this.searchController,
     this.hintText = 'Search books by title or author...',
     this.margin = const EdgeInsets.all(20),
   }) : super(key: key);
@@ -22,10 +24,8 @@ class BookSearchBar extends StatefulWidget {
 }
 
 class _BookSearchBarState extends State<BookSearchBar> {
-  final TextEditingController _searchController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   final Dio _dio = Dio();
-  bool _isLoading = false;
 
   @override
   void initState() {
@@ -34,14 +34,15 @@ class _BookSearchBarState extends State<BookSearchBar> {
       setState(() {});
     });
 
-    _searchController.addListener(() {
+    widget.searchController.addListener(() {
       setState(() {});
     });
   }
 
   @override
   void dispose() {
-    _searchController.dispose();
+    widget.searchController.clear();
+    widget.searchController.dispose();
     _focusNode.dispose();
     super.dispose();
   }
@@ -52,9 +53,6 @@ class _BookSearchBarState extends State<BookSearchBar> {
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
     widget.onLoadingChanged(true);
 
     try {
@@ -90,15 +88,12 @@ class _BookSearchBarState extends State<BookSearchBar> {
         );
       }
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
       widget.onLoadingChanged(false);
     }
   }
 
   void _clearSearch() {
-    _searchController.clear();
+    widget.searchController.clear();
     widget.onSearchResults([]);
     _focusNode.unfocus();
     FocusScope.of(context).unfocus();
@@ -106,7 +101,7 @@ class _BookSearchBarState extends State<BookSearchBar> {
 
   @override
   Widget build(BuildContext context) {
-    final bool showClearButton = _focusNode.hasFocus && _searchController.text.isNotEmpty;
+    final bool showClearButton = _focusNode.hasFocus && widget.searchController.text.isNotEmpty;
     final bool showBackButton = _focusNode.hasFocus;
     final customTheme = Theme.of(context).extension<CustomTextTheme>()!;
 
@@ -124,7 +119,7 @@ class _BookSearchBarState extends State<BookSearchBar> {
         ],
       ),
       child: TextField(
-        controller: _searchController,
+        controller: widget.searchController,
         focusNode: _focusNode,
         style: customTheme.bodyText.copyWith(
           color: Colors.grey[600],
@@ -136,19 +131,7 @@ class _BookSearchBarState extends State<BookSearchBar> {
             color: Colors.grey,
             fontSize: 16,
           ),
-          prefixIcon: _isLoading
-              ? const Padding(
-            padding: EdgeInsets.all(12.0),
-            child: SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF6C7B7F)),
-              ),
-            ),
-          )
-              : const Icon(
+          prefixIcon: const Icon(
             Icons.search,
             color: Colors.grey,
             size: 24,
