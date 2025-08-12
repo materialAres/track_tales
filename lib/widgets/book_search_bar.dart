@@ -7,6 +7,7 @@ class BookSearchBar extends StatefulWidget {
   final Function(List<dynamic>) onSearchResults;
   final Function(bool) onLoadingChanged;
   final TextEditingController searchController;
+  final bool showSearchResults;
   final String hintText;
   final EdgeInsets margin;
 
@@ -15,6 +16,7 @@ class BookSearchBar extends StatefulWidget {
     required this.onSearchResults,
     required this.onLoadingChanged,
     required this.searchController,
+    required this.showSearchResults,
     this.hintText = 'Search books by title or author...',
     this.margin = const EdgeInsets.all(20),
   }) : super(key: key);
@@ -102,7 +104,7 @@ class _BookSearchBarState extends State<BookSearchBar> {
   @override
   Widget build(BuildContext context) {
     final bool showClearButton = _focusNode.hasFocus && widget.searchController.text.isNotEmpty;
-    final bool showBackButton = _focusNode.hasFocus;
+    final bool showBackButton = !_focusNode.hasFocus && widget.showSearchResults;
     final customTheme = Theme.of(context).extension<CustomTextTheme>()!;
 
     return Container(
