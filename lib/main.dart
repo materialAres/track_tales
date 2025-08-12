@@ -195,6 +195,7 @@ class _HomePageState extends State<HomePage> {
             onSearchResults: _handleSearchResults,
             onLoadingChanged: _handleLoadingChanged,
             searchController: _searchController,
+            showSearchResults: _showSearchResults,
             hintText: 'Search books by title or author...',
             margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           ),
@@ -213,26 +214,6 @@ class _HomePageState extends State<HomePage> {
                     textColor: textColor,
                   ),
                   const SizedBox(height: 20),
-                  // Add a button to go back to main content
-                  if (!_isSearching)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 40),
-                      child: TextButton(
-                        onPressed: () {
-                          setState(() {
-                            _showSearchResults = false;
-                            _searchResults = [];
-                          });
-                        },
-                        child: const Text(
-                          'Back to home',
-                          style: TextStyle(
-                            color: textColor,
-                            fontSize: 18,
-                          ),
-                        ),
-                      ),
-                    ),
                 ],
               ),
             )
